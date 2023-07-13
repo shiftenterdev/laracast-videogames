@@ -2,25 +2,25 @@
 
 namespace App\Http\Livewire;
 
+use App\Http\Api\GamesApi;
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
 
 class SearchDropdown extends Component
 {
     public $search = '';
     public $searchResults = [];
 
+    private GamesApi $gamesApi;
+
+    public function boot(GamesApi $gamesApi)
+    {
+        $this->gamesApi = $gamesApi;
+    }
+
     public function render()
     {
         if (strlen($this->search) >= 2) {
-            $this->searchResults =  Http::withHeaders(config('services.igdb.headers'))
-                ->withBody(
-                    "search \"{$this->search}\";
-                        fields name, slug, cover.url;
-                        limit 8;
-                    ", "text/plain"
-                )->post(config('services.igdb.endpoint'))
-                ->json();
+            $this->searchResults =  $this->gamesApi->searchDropdown($this->search);
         }
 
         return view('livewire.search-dropdown');

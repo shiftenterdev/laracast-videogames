@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\GamesController;
+use App\Http\Controllers\MovieController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,5 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', 'GamesController@index')->name('games.index');
-Route::get('/games/{slug}', 'GamesController@show')->name('games.show');
+Route::get('/', [GamesController::class,'index'])->name('games.index');
+Route::get('games/{slug}', [GamesController::class,'show'])->name('games.show');
+Route::get('movie', [MovieController::class,'index'])->name('movie.index');
+Route::get('movie/{slug}', [MovieController::class,'show'])->name('movie.show');

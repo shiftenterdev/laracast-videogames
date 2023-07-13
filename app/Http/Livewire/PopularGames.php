@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Http\Api\GamesApi;
 use Carbon\Carbon;
 use Livewire\Component;
 use Illuminate\Support\Str;
@@ -12,26 +13,16 @@ class PopularGames extends Component
 {
     public $popularGames = [];
 
+    private GamesApi $gamesApi;
+
+    public function boot(GamesApi $gamesApi)
+    {
+        $this->gamesApi = $gamesApi;
+    }
+
     public function loadPopularGames()
     {
-        $before = Carbon::now()->subMonths(2)->timestamp;
-        $after = Carbon::now()->addMonths(2)->timestamp;
-
-        $popularGamesUnformatted = Cache::remember('popular-games', 7, function () use ($before, $after) {
-            // sleep(3);
-            return Http::withHeaders(config('services.igdb.headers'))
-                ->withBody(
-                    "fields name, cover.url, first_release_date, total_rating_count, platforms.abbreviation, rating, slug;
-                    where platforms = (48,49,130,6)
-                    & (first_release_date >= {$before}
-                    & first_release_date < {$after}
-                    & total_rating_count > 5);
-                    sort total_rating_count desc;
-                    limit 12;", "text/plain"
-                )->post(config('services.igdb.endpoint'))
-                ->json();
-        });
-
+        $popularGamesUnformatted = $this->gamesApi->popularGames();
         $this->popularGames = $this->formatForView($popularGamesUnformatted);
 
         collect($this->popularGames)->filter(function ($game) {

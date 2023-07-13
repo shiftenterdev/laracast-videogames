@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Api\GamesApi;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -9,6 +10,10 @@ use Illuminate\Support\Facades\Http;
 
 class GamesController extends Controller
 {
+    public function __construct(private readonly GamesApi $gamesApi)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -75,14 +80,7 @@ class GamesController extends Controller
      */
     public function show($slug)
     {
-        $game = Http::withHeaders(config('services.igdb.headers'))
-            ->withBody(
-                "fields name, cover.url, first_release_date, platforms.abbreviation, rating,
-                    slug, involved_companies.company.name, genres.name, aggregated_rating, summary, websites.*, videos.*, screenshots.*, similar_games.cover.url, similar_games.name, similar_games.rating,similar_games.platforms.abbreviation, similar_games.slug;
-                    where slug=\"{$slug}\";
-                ", "text/plain"
-            )->post(config('services.igdb.endpoint'))
-            ->json();
+        $game = $this->gamesApi->viewDetails($slug);
 
         abort_if(!$game, 404);
 
@@ -100,7 +98,7 @@ class GamesController extends Controller
             'platforms' => collect($game['platforms'])->pluck('abbreviation')->implode(', '),
             'memberRating' => array_key_exists('rating', $game) ? round($game['rating']) : '0',
             'criticRating' => array_key_exists('aggregated_rating', $game) ? round($game['aggregated_rating']) : '0',
-            'trailer' => 'https://youtube.com/embed/'.$game['videos'][0]['video_id'],
+            'trailer' => isset($game['videos'])?'https://youtube.com/embed/'.$game['videos'][0]['video_id']:"",
             'screenshots' => collect($game['screenshots'])->map(function ($screenshot) {
                 return [
                     'big' => Str::replaceFirst('thumb', 'screenshot_big', $screenshot['url']),

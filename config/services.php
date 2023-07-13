@@ -36,6 +36,13 @@ return [
             'Authorization' => 'Bearer '.env('IGDB_ACCESS_TOKEN'),
         ],
         'endpoint' => 'https://api.igdb.com/v4/games',
+        'authentication_url'=> 'https://id.twitch.tv/oauth2/token'
+    ],
+    'movie' => [
+        'headers' => [
+            'X-RapidAPI-Host' => env('RAPID_API_HOST'),
+            'X-RapidAPI-Key' => env('RAPID_API_KEY'),
+        ],
     ]
 
 ];
